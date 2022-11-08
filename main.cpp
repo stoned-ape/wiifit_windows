@@ -700,34 +700,6 @@ struct kinect {
 			//sk->right_ear=joint2vec4(joints[JointType_]);
 			//sk->left_clavicle=joint2vec4(joints[JointType_]);
 			//sk->right_clavicle=joint2vec4(joints[JointType_]);
-
-			sk->head = joint2vec4(joints[JointType_Head]);
-			sk->neck = joint2vec4(joints[JointType_Neck]);
-			sk->spine_chest = joint2vec4(joints[JointType_SpineShoulder]);
-			sk->spine_naval = joint2vec4(joints[JointType_SpineMid]);
-			sk->pelvis = joint2vec4(joints[JointType_SpineBase]);
-			sk->left_shoulder = joint2vec4(joints[JointType_ShoulderLeft]);
-			sk->right_shoulder = joint2vec4(joints[JointType_ShoulderRight]);
-			sk->left_elbow = joint2vec4(joints[JointType_ElbowLeft]);
-			sk->right_elbow = joint2vec4(joints[JointType_ElbowRight]);
-			sk->left_wrist = joint2vec4(joints[JointType_WristLeft]);
-			sk->right_wrist = joint2vec4(joints[JointType_WristRight]);
-			sk->left_hand = joint2vec4(joints[JointType_HandLeft]);
-			sk->right_hand = joint2vec4(joints[JointType_HandRight]);
-			sk->left_hand_tip = joint2vec4(joints[JointType_HandTipLeft]);
-			sk->right_hand_tip = joint2vec4(joints[JointType_HandTipRight]);
-			sk->left_thumb = joint2vec4(joints[JointType_ThumbLeft]);
-			sk->right_thumb = joint2vec4(joints[JointType_ThumbRight]);
-			sk->left_hip = joint2vec4(joints[JointType_HipLeft]);
-			sk->right_hip = joint2vec4(joints[JointType_HipRight]);
-			sk->left_knee = joint2vec4(joints[JointType_KneeLeft]);
-			sk->right_knee = joint2vec4(joints[JointType_KneeRight]);
-			sk->left_ankle = joint2vec4(joints[JointType_AnkleLeft]);
-			sk->right_ankle = joint2vec4(joints[JointType_AnkleRight]);
-			sk->left_foot = joint2vec4(joints[JointType_FootLeft]);
-			sk->right_foot = joint2vec4(joints[JointType_FootRight]);
-
-
 		}
 	l2:
 		for (int i = 0; i < _countof(bodies); ++i) {
