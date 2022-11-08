@@ -1,3 +1,3 @@
 # WiiFit (Computer Engineering Capstone Project)
 
-!(images/skeleton.png)[images/skeleton.png]
+!(images/skeleton1.png)[images/skeleton1.png]
