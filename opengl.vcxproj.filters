@@ -18,12 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="kinect_struct.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glfw-3.3.7.bin.win64\include\glfw\glfw3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="glfw-3.3.7.bin.win64\include\glfw\glfw3native.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kinect_struct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

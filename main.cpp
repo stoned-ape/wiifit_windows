@@ -1,46 +1,21 @@
 //#define DICK
 //#define KINECT
-#include <math.h>
 #include <windows.h>
 #include <gl/gl.h>
 #include <GLFW/glfw3.h>
+
+#include <math.h>
 #include <assert.h>
 #include <time.h>
 #include <sys/timeb.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#include <kinect.h>
+#include "kinect_struct.h"
 
-#define GLM_FORCE_RADIANS
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat2x2.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/geometric.hpp>
-#include <glm/ext.hpp>
-using glm::vec2;
-using glm::vec3;
-using glm::vec4;
-using glm::transpose;
-using glm::cross;
-using glm::length;
-using glm::normalize;
 
-typedef glm::vec2 float2;
-typedef glm::vec3 float3;
-typedef glm::vec4 float4;
-
-typedef glm::ivec2 int2;
-typedef glm::ivec3 int3;
-typedef glm::ivec4 int4;
-
-typedef glm::mat2 float2x2;
-typedef glm::mat3 float3x3;
-typedef glm::mat4 float4x4;
 
 #pragma comment(lib,"opengl32.lib")
 #pragma comment(lib,"user32.lib")
@@ -153,13 +128,13 @@ _quat angle_axis(float theta, float3 n) {
 	return _quat(cos(theta / 2), sin(theta / 2) * normalize(n));
 }
 _quat from_to(float3 a, float3 b) {
-	return angle_axis(acos(dot(normalize(a), normalize(b))),
-		normalize(cross(a, b)));
+	return angle_axis(acos(dot(normalize(a), normalize(b))), normalize(cross(a, b)));
 }
 
 struct _vertex {
 	float4 v;
 	float4 col;
+	_vertex() {}
 	_vertex(float4 _v, float4 c) :v(_v), col(c) {}
 };
 
@@ -179,101 +154,6 @@ float4 color_wheel(float t) {
 	angles.y = map(angles.y, -1., 1., 0., pi / 2.);
 	return float4(cos(angles.x) * sin(angles.y), cos(angles.y), sin(angles.x) * sin(angles.y), 1);
 }
-
-
-/*
-JointType_SpineBase = 0,
-JointType_SpineMid = 1,
-JointType_Neck = 2,
-JointType_Head = 3,
-JointType_ShoulderLeft = 4,
-JointType_ElbowLeft = 5,
-JointType_WristLeft = 6,
-JointType_HandLeft = 7,
-JointType_ShoulderRight = 8,
-JointType_ElbowRight = 9,
-JointType_WristRight = 10,
-JointType_HandRight = 11,
-JointType_HipLeft = 12,
-JointType_KneeLeft = 13,
-JointType_AnkleLeft = 14,
-JointType_FootLeft = 15,
-JointType_HipRight = 16,
-JointType_KneeRight = 17,
-JointType_AnkleRight = 18,
-JointType_FootRight = 19,
-JointType_SpineShoulder = 20,
-JointType_HandTipLeft = 21,
-JointType_ThumbLeft = 22,
-JointType_HandTipRight = 23,
-JointType_ThumbRight = 24,
-*/
-
-union skeleton3d {
-	struct {
-		float4 joints[32];
-	};
-	struct {
-		float4 pelvis;
-		float4 spine_naval;
-		float4 neck;
-		float4 head;
-		float4 left_shoulder;
-		float4 left_elbow;
-		float4 left_wrist;
-		float4 left_hand;
-		float4 right_shoulder;
-		float4 right_elbow;
-		float4 right_wrist;
-		float4 right_hand;
-		float4 left_hip;
-		float4 left_knee;
-		float4 left_ankle;
-		float4 left_foot;
-		float4 right_hip;
-		float4 right_knee;
-		float4 right_ankle;
-		float4 right_foot;
-		float4 spine_chest;
-		float4 left_hand_tip;
-		float4 left_thumb;
-		float4 right_hand_tip;
-		float4 right_thumb;
-
-		float4 left_eye;
-		float4 right_eye;
-		float4 left_ear;
-		float4 right_ear;
-		float4 left_clavicle;
-		float4 right_clavicle;
-		float4 nose;
-	};
-	struct {
-		float4 _pelvis;
-		float4 _spine_naval;
-		float4 _neck;
-		float4 _head;
-		struct {
-			float4 shoulder;
-			float4 elbow;
-			float4 wrist;
-			float4 hand;
-		}upper[2];
-		struct {
-			float4 hip;
-			float4 knee;
-			float4 ankle;
-			float4 foot;
-		}lower[2];
-		float4 _spine_chest;
-		struct {
-			float4 hand_tip;
-			float4 thumb;
-		}hand[2];
-	};
-};
-
-static_assert(sizeof(skeleton3d) == 32 * sizeof(vec4), "");
 
 skeleton3d get_default_skeleton() {
 	skeleton3d sk;
@@ -299,6 +179,11 @@ skeleton3d get_default_skeleton() {
 	}
 	return sk;
 }
+
+
+struct bgra8 {
+	uint8_t b, g, r, a;
+};
 
 namespace vertex_buffer {
 	void begin() {
@@ -329,12 +214,43 @@ namespace vertex_buffer {
 		push(_vertex(float4(+.5f, -.5f, 0, 1), 0.0f * float4(1, 1, 1, 1)));
 	}
 	void push_test_square() {
-		push(_vertex(float4(-.5, -.5, 0, 1), float4(1, 0, 1, 1)));
-		push(_vertex(float4(-.5, +.5, 0, 1), float4(1, 0, 1, 1)));
-		push(_vertex(float4(+.5, -.5, 0, 1), float4(1, 0, 1, 1)));
-		push(_vertex(float4(-.5, +.5, 0, 1), float4(1, 0, 1, 1)));
-		push(_vertex(float4(+.5, -.5, 0, 1), float4(1, 0, 1, 1)));
-		push(_vertex(float4(+.5, +.5, 0, 1), float4(1, 0, 1, 1)));
+		_vertex v[4];
+		for (int i = 0; i < 4; i++) {
+			v[i].v = vec4(pos(i & 1), pos(i & 2), 0, 1);
+			v[i].col = vec4((float)(i & 1) * .3, 0, (float)(i & 2) * .3, 1);
+		}
+		push(v[0]);
+		push(v[1]);
+		push(v[2]);
+		push(v[2]);
+		push(v[1]);
+		push(v[3]);
+	}
+	void push_test_image() {
+		_vertex v[4];
+		for (int i = 0; i < 4; i++) {
+			v[i].v = vec4(pos(i & 1), pos(i & 2), 0, 1);
+			v[i].col = vec4(1, 1, 1, 1); 
+		}
+		end();
+		glEnable(GL_TEXTURE_2D);
+		begin();
+		glTexCoord2f(0, 0);
+		push(v[0]);
+		glTexCoord2f(1, 0);
+		push(v[1]);
+		glTexCoord2f(0, 1);
+		push(v[2]);
+		glTexCoord2f(0, 1);
+		push(v[2]);
+		glTexCoord2f(1, 0);
+		push(v[1]);
+		glTexCoord2f(1, 1);
+		push(v[3]);
+		end();
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);
+		begin();
 	}
 	void push_test_cube() {
 		for (int k = 0; k < 3; k++) {
@@ -523,10 +439,19 @@ namespace vertex_buffer {
 		push_line(sk.spine_naval, sk.pelvis);
 
 #ifdef DICK
-		vec3 i = sk.spine_naval - sk.pelvis;
-		vec3 j = sk.right_hip - sk.pelvis;
+		vec3 i = normalize(sk.spine_naval - sk.pelvis);
+		vec3 j = normalize(sk.right_hip - sk.left_hip);
 		vec3 k = normalize(cross(i, j));
 		push_line(sk.pelvis, sk.pelvis + 1.0f * vec4(k, 1));
+		push_mtx(trans(sk.pelvis - vec4((i - k) * .2f, 0) * .3f));
+		for (int i = 0; i < 2; i++) {
+			push_mtx(trans(pos(i) * j * .04f));
+			push_mtx(scale(.1));
+			push_test_sphere(8);
+			pop_mtx();
+			pop_mtx();
+		}
+		pop_mtx();
 #endif
 
 		for (int i = 0; i < 2; i++) {
@@ -562,21 +487,64 @@ float itime() {
 
 inline float deg(float rad) { return rad * 180 / pi; }
 
+kinect _kinect;
+
 struct renderer {
 	float width, height;
 	GLFWwindow *window;
+	uint32_t tex_id;
 	void init() {
 		puts(__func__);
-		bool b = glfwInit();
-		assert(b);
+		assert(glfwInit());
 		width = 640;
 		height = 480;
 		window = glfwCreateWindow(width, height, "._____.", NULL, NULL);
 		assert(window);
 		glfwMakeContextCurrent(window);
+
+		glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) {
+			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+				puts("click");
+#ifdef KINECT
+				if (_kinect.recording) _kinect.stop_recording();
+				else _kinect.start_recording("record.bin");
+#endif
+			}
+		});
+
 		glEnable(GL_DEPTH_TEST);
+
+		const int img_w = 8, img_h = 8;
+		bgra8 img[img_h][img_w];
+
+		for (int j = 0; j < img_h; j++) {
+			for (int i = 0; i < img_w; i++) {
+				img[j][i].r = i *(255 / img_w);
+				img[j][i].g = 0;
+				img[j][i].b = j *(255 / img_h);
+				img[j][i].a = 1;
+			}
+		}
+
+		glGenTextures(1, &tex_id);
+		assert(tex_id>0);
+		glBindTexture(GL_TEXTURE_2D, tex_id);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, img_w, img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE,NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
+		glTexSubImage2D(
+			GL_TEXTURE_2D, 0, 0, 0,
+			img_w,
+			img_h,
+			GL_RGBA,
+			GL_UNSIGNED_BYTE,
+			img
+		);
+
 	}
-	bool update(const skeleton3d *sk) {
+	bool update(uint32_t n,const skeleton3d *sk) {
 		if (glfwWindowShouldClose(window)) return true;
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
@@ -593,7 +561,12 @@ struct renderer {
 
 		vertex_buffer::begin();
 
-		vertex_buffer::push_mtx(scale(height / width, 1, 1));
+		vertex_buffer::push_mtx(trans(0, 0, .9));
+		//vertex_buffer::push_test_square();
+		vertex_buffer::push_test_image();
+		vertex_buffer::pop_mtx();
+
+		vertex_buffer::push_mtx(scale(height / width, 1, .25));
 		vertex_buffer::push_mtx(rotx(-phi));
 		vertex_buffer::push_mtx(roty(theta));
 
@@ -607,8 +580,10 @@ struct renderer {
 		//vertex_buffer::push_test_model();
 		//vertex_buffer::push_test_sphere(15);
 
-		if (sk == NULL) vertex_buffer::push_test_model();
-		else vertex_buffer::push_model(*sk);
+		if (sk == NULL ) vertex_buffer::push_test_model();
+		else for (int i = 0; i < n; i++) {
+			vertex_buffer::push_model(sk[i]);
+		}
 
 		vertex_buffer::pop_mtx();
 		vertex_buffer::pop_mtx();
@@ -622,91 +597,20 @@ struct renderer {
 	}
 };
 
-template<class T>
-inline void safe_release(T *&obj) {
-	if (obj != NULL) {
-		obj->Release();
-		obj = NULL;
+
+struct record {
+	FILE *file;
+	record(const char *fname) {
+		file = fopen(fname, "rb");
+		assert(file);
 	}
-}
-
-struct kinect {
-	IKinectSensor *kinect_sensor;
-	ICoordinateMapper *coordinate_mapper;
-	IBodyFrameSource *body_frame_source;
-	IBodyFrameReader *body_frame_reader;
-	void init() {
-		HRESULT hr;
-		hr = GetDefaultKinectSensor(&kinect_sensor);
-		assert(!FAILED(hr));
-		assert(kinect_sensor);
-		hr = kinect_sensor->Open();
-		assert(!FAILED(hr));
-		hr = kinect_sensor->get_CoordinateMapper(&coordinate_mapper);
-		assert(!FAILED(hr));
-		assert(coordinate_mapper);
-		hr = kinect_sensor->get_BodyFrameSource(&body_frame_source);
-		assert(!FAILED(hr));
-		assert(body_frame_source);
-		hr = body_frame_source->OpenReader(&body_frame_reader);
-		assert(!FAILED(hr));
-		assert(body_frame_reader);
-	}
-	void update(skeleton3d *sk) {
-		HRESULT hr;
-		if (!body_frame_reader) return;
-		IBodyFrame *body_frame = NULL;
-		hr = body_frame_reader->AcquireLatestFrame(&body_frame);
-		if (FAILED(hr)) goto l1;
-
-		IBody *bodies[6] = { 0 };
-		long long ntime = 0;
-		hr = body_frame->get_RelativeTime(&ntime);
-		//if (FAILED(hr)) return;
-		hr = body_frame->GetAndRefreshBodyData(_countof(bodies), bodies);
-		if (FAILED(hr)) goto l2;
-		for (int i = 0; i < _countof(bodies); ++i) {
-			puts("bruh");
-			if (!bodies[i]) continue;
-			BOOLEAN istracked = false;
-			hr = bodies[i]->get_IsTracked(&istracked);
-
-			if (FAILED(hr) || !istracked) continue;
-
-			Joint joints[JointType_Count];
-			HandState left_hand_state = HandState_Unknown;
-			HandState right_hand_state = HandState_Unknown;
-
-			bodies[i]->get_HandLeftState(&left_hand_state);
-			bodies[i]->get_HandRightState(&right_hand_state);
-
-			hr = bodies[i]->GetJoints(_countof(joints), joints);
-			if (FAILED(hr)) continue;
-			puts("bruh2");
-
-			auto joint2vec4 = [](Joint j)->vec4 {
-				auto csp = j.Position;
-				return vec4(csp.X, csp.Y, csp.Z - 2, 1);
-			};
-
-			for (int j = 0; j < 24; j++) {
-				sk->joints[j] = joint2vec4(joints[j]);
-			}
-
-			//sk->nose=joint2vec4(joints[JointType_]);
-			//sk->left_eye=joint2vec4(joints[JointType_]);
-			//sk->right_eye=joint2vec4(joints[JointType_]);
-			//sk->left_ear=joint2vec4(joints[JointType_]);
-			//sk->right_ear=joint2vec4(joints[JointType_]);
-			//sk->left_clavicle=joint2vec4(joints[JointType_]);
-			//sk->right_clavicle=joint2vec4(joints[JointType_]);
+	void get_next_frame(skeleton3d *sk) {
+		int ret=fread(sk, 1, sizeof(skeleton3d), file);
+		if (ret == 0) {
+			fseek(file, 0, SEEK_SET);
+			ret=fread(sk, 1, sizeof(skeleton3d), file);
+			assert(ret);
 		}
-	l2:
-		for (int i = 0; i < _countof(bodies); ++i) {
-			safe_release(bodies[i]);
-		}
-	l1:
-		safe_release(body_frame);
 	}
 };
 
@@ -714,19 +618,27 @@ struct kinect {
 
 int main() {
 	puts(__func__);
-	skeleton3d sk = get_default_skeleton();
-	renderer ren;
-	kinect k;
-#ifdef KINECT
-	k.init();
-#endif
+	const uint32_t n = 3;
+	skeleton3d sk[n];
+	for (int i = 0; i < n; i++) {
+		sk[i] = get_default_skeleton();
+		if (n > 1) {
+			for (int j = 0; j < JointType_Count; j++) {
+				sk[i].joints[j].x += map(i, 0, n - 1, -.7, .7);
+			}
+		}
+	}
+	static renderer ren;
 	ren.init();
+#ifdef KINECT
+	_kinect.init();
+#endif
 	bool done;
 	do {
 #ifdef KINECT
-		k.update(&sk);
+		_kinect.update(n,sk);
 #endif
-		done = ren.update(&sk);
+		done = ren.update(n,sk);
 	} while (!done);
 
 	return 0;
