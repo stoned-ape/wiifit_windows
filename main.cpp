@@ -1,7 +1,12 @@
-//#define DICK
+// #define DICK
+#ifndef __APPLE__
 //#define KINECT
 #include <windows.h>
 #include <gl/gl.h>
+#else 
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/gl.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include <math.h>
@@ -487,7 +492,9 @@ float itime() {
 
 inline float deg(float rad) { return rad * 180 / pi; }
 
+#ifndef __APPLE__
 kinect _kinect;
+#endif
 
 struct renderer {
 	float width, height;
