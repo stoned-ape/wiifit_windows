@@ -126,11 +126,15 @@ union skeleton3d {
 
 static_assert(sizeof(skeleton3d) == 32 * sizeof(vec4), "");
 
+struct bgra8 {
+	uint8_t b, g, r, a;
+};
 
 struct kinect {
 	IKinectSensor *kinect_sensor;
 	ICoordinateMapper *coordinate_mapper;
 	IBodyFrameReader *body_frame_reader;
+	IColorFrameReader *color_frame_reader;
 	bool recording;
 	FILE *file;
 	kinect();
@@ -139,4 +143,5 @@ struct kinect {
 	void stop_recording();
 	void init();
 	void update(uint32_t n,skeleton3d *sk);
+	void update_frame(bgra8 *data);
 };

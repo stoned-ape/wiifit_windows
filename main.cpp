@@ -1,5 +1,5 @@
 //#define DICK
-//#define KINECT
+#define KINECT
 #include <windows.h>
 #include <gl/gl.h>
 #include <GLFW/glfw3.h>
@@ -181,9 +181,7 @@ skeleton3d get_default_skeleton() {
 }
 
 
-struct bgra8 {
-	uint8_t b, g, r, a;
-};
+
 
 namespace vertex_buffer {
 	void begin() {
@@ -483,6 +481,13 @@ float itime() {
 }
 
 
+float compare_skeletons(skeleton3d *sk1, skeleton3d *sk2) {
+	float res = 0;
+	for (int i = 0; i < JointType_Count; i++) {
+		res += length(sk1->joints[i] - sk2->joints[i]);
+	}
+	return res / JointType_Count;
+}
 
 
 inline float deg(float rad) { return rad * 180 / pi; }
@@ -493,6 +498,8 @@ struct renderer {
 	float width, height;
 	GLFWwindow *window;
 	uint32_t tex_id;
+	static const int img_w = 1920, img_h = 1080;
+	bgra8 img[img_h][img_w];
 	void init() {
 		puts(__func__);
 		assert(glfwInit());
@@ -514,14 +521,12 @@ struct renderer {
 
 		glEnable(GL_DEPTH_TEST);
 
-		const int img_w = 8, img_h = 8;
-		bgra8 img[img_h][img_w];
 
 		for (int j = 0; j < img_h; j++) {
 			for (int i = 0; i < img_w; i++) {
-				img[j][i].r = i *(255 / img_w);
+				img[j][i].r = i *(255.0 / img_w);
 				img[j][i].g = 0;
-				img[j][i].b = j *(255 / img_h);
+				img[j][i].b = j *(255.0 / img_h);
 				img[j][i].a = 1;
 			}
 		}
@@ -529,11 +534,12 @@ struct renderer {
 		glGenTextures(1, &tex_id);
 		assert(tex_id>0);
 		glBindTexture(GL_TEXTURE_2D, tex_id);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, img_w, img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE,NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, img_w, img_h, 0, GL_RGBA, GL_UNSIGNED_BYTE,img);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-
+	}
+	void update_frame() {
 		glTexSubImage2D(
 			GL_TEXTURE_2D, 0, 0, 0,
 			img_w,
@@ -542,7 +548,6 @@ struct renderer {
 			GL_UNSIGNED_BYTE,
 			img
 		);
-
 	}
 	bool update(uint32_t n,const skeleton3d *sk) {
 		if (glfwWindowShouldClose(window)) return true;
@@ -634,10 +639,14 @@ int main() {
 	_kinect.init();
 #endif
 	bool done;
+	record r("record.bin");
 	do {
 #ifdef KINECT
-		_kinect.update(n,sk);
-#endif
+		_kinect.update(n-1,sk+1);
+		//_kinect.update_frame(&ren.img[0][0]);
+#endif	
+		r.get_next_frame(sk);
+
 		done = ren.update(n,sk);
 	} while (!done);
 

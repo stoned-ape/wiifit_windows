@@ -12,6 +12,7 @@ kinect::kinect() {
 	kinect_sensor = NULL;
 	coordinate_mapper = NULL;
 	body_frame_reader = NULL;
+	color_frame_reader = NULL;
 	recording = false;
 	file = NULL;
 }
@@ -49,11 +50,33 @@ void kinect::init() {
 	hr = body_frame_source->OpenReader(&body_frame_reader);
 	assert(!FAILED(hr));
 	assert(body_frame_reader);
+	IColorFrameSource *color_frame_source = NULL;
+	hr = kinect_sensor->get_ColorFrameSource(&color_frame_source);
+	assert(!FAILED(hr));
+	assert(color_frame_source);
+	hr = color_frame_source->OpenReader(&color_frame_reader);
+	assert(!FAILED(hr));
+	assert(color_frame_reader);
+	
+	safe_release(color_frame_source);
 	safe_release(body_frame_source);
+}
+void kinect::update_frame(bgra8 *data) {
+	HRESULT hr;
+	IColorFrame *color_frame = NULL;
+	hr = color_frame_reader->AcquireLatestFrame(&color_frame);
+	if (FAILED(hr)) goto l0;
+	BYTE *ptr;
+	uint32_t size;
+	hr = color_frame->AccessRawUnderlyingBuffer(&size, &ptr);
+	if (FAILED(hr)) goto l0;
+	memcpy(data, ptr, size);
+l0:
+	safe_release(color_frame);
 }
 void kinect::update(uint32_t n,skeleton3d *sk) {
 	HRESULT hr;
-	if (!body_frame_reader) return;
+
 	IBodyFrame *body_frame = NULL;
 	hr = body_frame_reader->AcquireLatestFrame(&body_frame);
 	if (FAILED(hr)) goto l1;
@@ -79,7 +102,7 @@ void kinect::update(uint32_t n,skeleton3d *sk) {
 			auto csp = j.Position;
 			return vec4(csp.X, csp.Y, csp.Z - 2, 1);
 		};
-		for (int j = 0; j < 24; j++) {
+		for (int j = 0; j < JointType_Count; j++) {
 			sk[i].joints[j] = joint2vec4(joints[j]);
 		}
 
