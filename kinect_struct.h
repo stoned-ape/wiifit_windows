@@ -1,5 +1,9 @@
 #pragma once
+#ifndef __APPLE__
 #include <kinect.h>
+#else
+#define JointType_Count 25
+#endif
 #include <stdio.h>
 #include <stdint.h>
 
@@ -126,9 +130,13 @@ union skeleton3d {
 
 static_assert(sizeof(skeleton3d) == 32 * sizeof(vec4), "");
 
+
 struct bgra8 {
 	uint8_t b, g, r, a;
 };
+
+
+#ifndef __APPLE__
 
 struct kinect {
 	IKinectSensor *kinect_sensor;
@@ -145,3 +153,4 @@ struct kinect {
 	void update(uint32_t n,skeleton3d *sk);
 	void update_frame(bgra8 *data);
 };
+#endif

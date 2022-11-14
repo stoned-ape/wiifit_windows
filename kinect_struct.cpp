@@ -8,6 +8,7 @@ inline void safe_release(T *&obj) {
 	}
 }
 
+#ifndef __APPLE__
 kinect::kinect() {
 	kinect_sensor = NULL;
 	coordinate_mapper = NULL;
@@ -125,4 +126,4 @@ l2:
 l1:
 	safe_release(body_frame);
 }
-
+#endif
