@@ -77,11 +77,11 @@ l0:
 }
 void kinect::update(uint32_t n,skeleton3d *sk) {
 	HRESULT hr;
-
 	IBodyFrame *body_frame = NULL;
 	hr = body_frame_reader->AcquireLatestFrame(&body_frame);
 	if (FAILED(hr)) goto l1;
-	IBody *bodies[6] = { 0 };
+	IBody *bodies[6];
+	memset(bodies, 0, sizeof(bodies));
 	hr = body_frame->GetAndRefreshBodyData(_countof(bodies), bodies);
 	if (FAILED(hr)) goto l2;
 	for (int i = 0; i < _countof(bodies); ++i) {

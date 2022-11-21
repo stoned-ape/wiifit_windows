@@ -1,6 +1,7 @@
 // #define DICK
 #ifndef __APPLE__
 //#define KINECT
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <gl/gl.h>
 #else 
@@ -26,7 +27,11 @@
 #pragma comment(lib,"user32.lib")
 #pragma comment(lib,"gdi32.lib")
 #pragma comment(lib,"shell32.lib")
+#ifdef _WINDLL
+#pragma comment(lib,"../glfw-3.3.7.bin.WIN64/lib-vc2019/glfw3_mt.lib")
+#else
 #pragma comment(lib,"glfw-3.3.7.bin.WIN64/lib-vc2019/glfw3_mt.lib")
+#endif
 
 #pragma comment(lib,"kinect20.lib")
 #pragma comment(lib,"kinect20.fusion.lib")
@@ -507,9 +512,11 @@ struct renderer {
 	uint32_t tex_id;
 	static const int img_w = 1920, img_h = 1080;
 	bgra8 img[img_h][img_w];
+	//renderer() { init(); }
 	void init() {
 		puts(__func__);
 		assert(glfwInit());
+		puts("bruh");
 		width = 640;
 		height = 480;
 		window = glfwCreateWindow(width, height, "._____.", NULL, NULL);
@@ -612,23 +619,47 @@ struct renderer {
 
 struct record {
 	FILE *file;
-	record(const char *fname) {
+	bool playing;
+	record() :file(NULL), playing(false) {}
+	void open(const char *fname) {
 		file = fopen(fname, "rb");
 		assert(file);
 	}
 	void get_next_frame(skeleton3d *sk) {
-		int ret=fread(sk, 1, sizeof(skeleton3d), file);
-		if (ret == 0) {
-			fseek(file, 0, SEEK_SET);
-			ret=fread(sk, 1, sizeof(skeleton3d), file);
-			assert(ret);
+		if (playing) {
+			int ret = fread(sk, 1, sizeof(skeleton3d), file);
+			if (ret == 0) {
+				fseek(file, 0, SEEK_SET);
+				ret = fread(sk, 1, sizeof(skeleton3d), file);
+				assert(ret);
+			}
 		}
 	}
 };
 
 
+renderer ren;
+record r;
 
-int main() {
+extern "C" _declspec(dllexport) void start_recording(const char *fname) {
+	_kinect.start_recording(fname);
+}
+
+extern "C" _declspec(dllexport) void stop_recording() {
+	_kinect.stop_recording();
+}
+
+extern "C" _declspec(dllexport) void start_replay(const char *fname) {
+	r.open(fname);
+	r.playing = true;
+}
+
+extern "C" _declspec(dllexport) void stop_replay() {
+	r.playing = false;
+}
+
+
+void run_renderer() {
 	puts(__func__);
 	const uint32_t n = 3;
 	skeleton3d sk[n];
@@ -640,23 +671,45 @@ int main() {
 			}
 		}
 	}
-	static renderer ren;
 	ren.init();
 #ifdef KINECT
 	_kinect.init();
 #endif
 	bool done;
-	record r("record.bin");
+	//r.open("record.bin");
+	//r.playing = true;
 	do {
 #ifdef KINECT
-		_kinect.update(n-1,sk+1);
+		_kinect.update(n - 1, sk + 1);
 		//_kinect.update_frame(&ren.img[0][0]);
 #endif	
-		r.get_next_frame(sk);
+		//r.get_next_frame(sk);
 
-		done = ren.update(n,sk);
+		done = ren.update(n, sk);	
 	} while (!done);
-
-	return 0;
-
 }
+
+extern "C" _declspec(dllexport) void *run_render_thread() {
+	return CreateThread(NULL, 0, [](void *v)-> unsigned long {
+		run_renderer();
+		return 0;
+	}, NULL, 0, NULL);
+}
+
+int main() {
+	run_renderer();
+}
+
+/*BOOL APIENTRY DllMain(HMODULE hModule,
+	DWORD  ul_reason_for_call,
+	LPVOID lpReserved) {
+	switch (ul_reason_for_call) {
+	case DLL_PROCESS_ATTACH: puts("DLL_PROCESS_ATTACH"); break;
+	case DLL_THREAD_ATTACH: puts("DLL_THREAD_ATTACH"); break;
+	case DLL_THREAD_DETACH: puts("DLL_THREAD_DETACH"); break;
+	case DLL_PROCESS_DETACH: puts("DLL_PROCESS_DETACH"); break;
+	}
+
+	return TRUE;
+
+}*/

@@ -1,5 +1,6 @@
 #pragma once
 #ifndef __APPLE__
+#define _CRT_SECURE_NO_WARNINGS
 #include <kinect.h>
 #else
 #define JointType_Count 25
