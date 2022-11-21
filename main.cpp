@@ -1,6 +1,6 @@
 // #define DICK
 #ifndef __APPLE__
-//#define KINECT
+#define KINECT
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
 #include <gl/gl.h>
@@ -523,7 +523,7 @@ struct renderer {
 		assert(window);
 		glfwMakeContextCurrent(window);
 
-		glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int mods) {
+		/*glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 				puts("click");
 #ifdef KINECT
@@ -531,7 +531,7 @@ struct renderer {
 				else _kinect.start_recording("record.bin");
 #endif
 			}
-		});
+		});*/
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -683,7 +683,7 @@ void run_renderer() {
 		_kinect.update(n - 1, sk + 1);
 		//_kinect.update_frame(&ren.img[0][0]);
 #endif	
-		//r.get_next_frame(sk);
+		if(r.playing) r.get_next_frame(sk);
 
 		done = ren.update(n, sk);	
 	} while (!done);

@@ -24,12 +24,12 @@ kinect::~kinect() {
 	safe_release(kinect_sensor);
 }
 void kinect::start_recording(const char *fname) {
-	assert(!recording);
+	if(recording) return;
 	file = fopen(fname, "wb");
 	recording = true;
 }
 void kinect::stop_recording() {
-	assert(recording);
+	if(!recording) return;
 	fclose(file);
 	file = NULL;
 	recording = false;
