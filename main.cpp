@@ -661,7 +661,7 @@ extern "C" _declspec(dllexport) void stop_replay() {
 
 void run_renderer() {
 	puts(__func__);
-	const uint32_t n = 3;
+	const uint32_t n = 2;
 	skeleton3d sk[n];
 	for (int i = 0; i < n; i++) {
 		sk[i] = get_default_skeleton();
