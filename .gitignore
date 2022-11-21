@@ -4,3 +4,5 @@ a.out
 *.swp
 .vs
 x64/Debug/
+dll1/x64/
+open_the_dll/x64/
