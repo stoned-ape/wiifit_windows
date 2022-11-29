@@ -260,6 +260,7 @@ namespace vertex_buffer {
 		glEnable(GL_DEPTH_TEST);
 		begin();
 	}
+	float dist_for_col=.5;
 	void push_test_cube() {
 		for (int k = 0; k < 3; k++) {
 			float rgb[3] = { (float)(k == 0),(float)(k == 1),(float)(k == 2) };
@@ -269,6 +270,7 @@ namespace vertex_buffer {
 				else col = float4(1 - rgb[0], 1 - rgb[1], 1 - rgb[2], 1);
 				float vtx[3];
 				vtx[k] = .5 * pos(j);
+				col = vec4(0, 0, 1, 0) + dist_for_col * vec4(1, 0, -1, 0);
 				for (int i = 0; i < 3; i++) {
 					vtx[(k + 1) % 3] = +.5 * pos(i / 2);
 					vtx[(k + 2) % 3] = +.5 * pos(i % 2);
@@ -684,7 +686,7 @@ void run_renderer() {
 		//_kinect.update_frame(&ren.img[0][0]);
 #endif	
 		if(r.playing) r.get_next_frame(sk);
-
+		vertex_buffer::dist_for_col=compare_skeletons(&sk[0],&sk[1])/5;
 		done = ren.update(n, sk);	
 	} while (!done);
 }
