@@ -686,7 +686,8 @@ void run_renderer() {
 		//_kinect.update_frame(&ren.img[0][0]);
 #endif	
 		if(r.playing) r.get_next_frame(sk);
-		vertex_buffer::dist_for_col=compare_skeletons(&sk[0],&sk[1])/5;
+		vertex_buffer::dist_for_col=(compare_skeletons(&sk[0],&sk[1])-.4)*8; // blue and red
+		printf("%f\n", vertex_buffer::dist_for_col);
 		done = ren.update(n, sk);	
 	} while (!done);
 }
