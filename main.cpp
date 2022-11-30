@@ -680,15 +680,17 @@ void run_renderer() {
 	bool done;
 	//r.open("record.bin");
 	//r.playing = true;
+	int i = 0;
 	do {
 #ifdef KINECT
 		_kinect.update(n - 1, sk + 1);
 		//_kinect.update_frame(&ren.img[0][0]);
 #endif	
-		if(r.playing) r.get_next_frame(sk);
+		if (r.playing && i % 4 == 0) r.get_next_frame(sk);
 		vertex_buffer::dist_for_col=(compare_skeletons(&sk[0],&sk[1])-.4)*8; // blue and red
 		printf("%f\n", vertex_buffer::dist_for_col);
 		done = ren.update(n, sk);	
+		i++;
 	} while (!done);
 }
 
